@@ -8,7 +8,6 @@
 SERVER = "127.0.0.1"
 USER = "s01"
 
-
 PASSWORD = "USER_DEFAULT_PASSWORD"
 PORT = 35601
 CU = "cu.tz.cloudcpp.com"
@@ -29,15 +28,18 @@ import json
 import errno
 import subprocess
 import threading
+
 try:
-    from queue import Queue     # python3
+    from queue import Queue  # python3
 except ImportError:
-    from Queue import Queue     # python2
+    from Queue import Queue  # python2
+
 
 def get_uptime():
     with open('/proc/uptime', 'r') as f:
         uptime = f.readline().split('.', 2)
         return int(uptime[0])
+
 
 def get_memory():
     re_parser = re.compile(r'^(?P<key>\S*):\s*(?P<value>\d*)\s*kB')
@@ -49,58 +51,80 @@ def get_memory():
         key, value = match.groups(['key', 'value'])
         result[key] = int(value)
     MemTotal = float(result['MemTotal'])
-    MemUsed = MemTotal-float(result['MemFree'])-float(result['Buffers'])-float(result['Cached'])-float(result['SReclaimable'])
+    MemUsed = MemTotal - float(result['MemFree']) - float(result['Buffers']) - float(result['Cached']) - float(
+        result['SReclaimable'])
     SwapTotal = float(result['SwapTotal'])
     SwapFree = float(result['SwapFree'])
     return int(MemTotal), int(MemUsed), int(SwapTotal), int(SwapFree)
 
+
 def get_hdd():
-    p = subprocess.check_output(['df', '-Tlm', '--total', '-t', 'ext4', '-t', 'ext3', '-t', 'ext2', '-t', 'reiserfs', '-t', 'jfs', '-t', 'ntfs', '-t', 'fat32', '-t', 'btrfs', '-t', 'fuseblk', '-t', 'zfs', '-t', 'simfs', '-t', 'xfs']).decode("Utf-8")
+    p = subprocess.check_output(
+        ['df', '-Tlm', '--total', '-t', 'ext4', '-t', 'ext3', '-t', 'ext2', '-t', 'reiserfs', '-t', 'jfs', '-t', 'ntfs',
+         '-t', 'fat32', '-t', 'btrfs', '-t', 'fuseblk', '-t', 'zfs', '-t', 'simfs', '-t', 'xfs']).decode("Utf-8")
     total = p.splitlines()[-1]
     used = total.split()[3]
     size = total.split()[2]
     return int(size), int(used)
 
+
 def get_time():
     with open("/proc/stat", "r") as f:
         time_list = f.readline().split(' ')[2:6]
-        for i in range(len(time_list))  :
+        for i in range(len(time_list)):
             time_list[i] = int(time_list[i])
         return time_list
+
 
 def delta_time():
     x = get_time()
     time.sleep(INTERVAL)
     y = get_time()
     for i in range(len(x)):
-        y[i]-=x[i]
+        y[i] -= x[i]
     return y
+
 
 def get_cpu():
     t = delta_time()
     st = sum(t)
     if st == 0:
         st = 1
-    result = 100-(t[len(t)-1]*100.00/st)
+    result = 100 - (t[len(t) - 1] * 100.00 / st)
     return round(result, 1)
 
+
 def liuliang():
+    with os.popen('vnstat --oneline b') as p:
+        vnstat = p.readlines()
+    vData = vnstat[0].split(";")
+    if len(vData) != 15:
+        return liuliang_old()
+    NET_IN = int(vData[8])
+    NET_OUT = int(vData[9])
+    return NET_IN, NET_OUT
+
+
+def liuliang_old():
     NET_IN = 0
     NET_OUT = 0
     with open('/proc/net/dev') as f:
         for line in f.readlines():
-            netinfo = re.findall('([^\s]+):[\s]{0,}(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)', line)
+            netinfo = re.findall(
+                '([^\s]+):[\s]{0,}(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)',
+                line)
             if netinfo:
                 if netinfo[0][0] == 'lo' or 'tun' in netinfo[0][0] \
                         or 'docker' in netinfo[0][0] or 'veth' in netinfo[0][0] \
                         or 'br-' in netinfo[0][0] or 'vmbr' in netinfo[0][0] \
                         or 'vnet' in netinfo[0][0] or 'kube' in netinfo[0][0] \
-                        or netinfo[0][1]=='0' or netinfo[0][9]=='0':
+                        or netinfo[0][1] == '0' or netinfo[0][9] == '0':
                     continue
                 else:
                     NET_IN += int(netinfo[0][1])
                     NET_OUT += int(netinfo[0][9])
     return NET_IN, NET_OUT
+
 
 def tupd():
     '''
@@ -108,25 +132,27 @@ def tupd():
     :return:
     '''
     s = subprocess.check_output("ss -t|wc -l", shell=True)
-    t = int(s[:-1])-1
+    t = int(s[:-1]) - 1
     s = subprocess.check_output("ss -u|wc -l", shell=True)
-    u = int(s[:-1])-1
+    u = int(s[:-1]) - 1
     s = subprocess.check_output("ps -ef|wc -l", shell=True)
-    p = int(s[:-1])-2
+    p = int(s[:-1]) - 2
     s = subprocess.check_output("ps -eLf|wc -l", shell=True)
-    d = int(s[:-1])-2
-    return t,u,p,d
+    d = int(s[:-1]) - 2
+    return t, u, p, d
+
 
 def get_network(ip_version):
-    if(ip_version == 4):
+    if (ip_version == 4):
         HOST = "ipv4.google.com"
-    elif(ip_version == 6):
+    elif (ip_version == 6):
         HOST = "ipv6.google.com"
     try:
         socket.create_connection((HOST, 80), 2).close()
         return True
     except:
         return False
+
 
 lostRate = {
     '10010': 0.0,
@@ -151,20 +177,21 @@ diskIO = {
     'write': 0
 }
 
+
 def _ping_thread(host, mark, port):
     return
     lostPacket = 0
     packet_queue = Queue(maxsize=PING_PACKET_HISTORY_LEN)
 
     IP = host
-    if host.count(':') < 1:     # if not plain ipv6 address, means ipv4 address or hostname
+    if host.count(':') < 1:  # if not plain ipv6 address, means ipv4 address or hostname
         try:
             if PROBE_PROTOCOL_PREFER == 'ipv4':
                 IP = socket.getaddrinfo(host, None, socket.AF_INET)[0][4][0]
             else:
                 IP = socket.getaddrinfo(host, None, socket.AF_INET6)[0][4][0]
         except Exception:
-                pass
+            pass
 
     while True:
         if packet_queue.full():
@@ -179,7 +206,7 @@ def _ping_thread(host, mark, port):
             if error.errno == errno.ECONNREFUSED:
                 pingTime[mark] = int((timeit.default_timer() - b) * 1000)
                 packet_queue.put(1)
-            #elif error.errno == errno.ETIMEDOUT:
+            # elif error.errno == errno.ETIMEDOUT:
             else:
                 lostPacket += 1
                 packet_queue.put(0)
@@ -188,6 +215,7 @@ def _ping_thread(host, mark, port):
             lostRate[mark] = float(lostPacket) / packet_queue.qsize()
 
         time.sleep(INTERVAL)
+
 
 def _net_speed():
     while True:
@@ -213,6 +241,7 @@ def _net_speed():
             netSpeed["avgrx"] = avgrx
             netSpeed["avgtx"] = avgtx
         time.sleep(INTERVAL)
+
 
 def _disk_io():
     '''
@@ -275,6 +304,7 @@ def _disk_io():
         diskIO["read"] = snapshot_read
         diskIO["write"] = snapshot_write
 
+
 def get_realtime_data():
     '''
     real time get system data
@@ -314,6 +344,7 @@ def get_realtime_data():
         ti.daemon = True
         ti.start()
 
+
 def byte_str(object):
     '''
     bytes to str, str to bytes
@@ -326,6 +357,7 @@ def byte_str(object):
         return bytes.decode(object)
     else:
         print(type(object))
+
 
 if __name__ == '__main__':
     for argc in sys.argv:
@@ -384,7 +416,7 @@ if __name__ == '__main__':
                     array['online' + str(check_ip)] = get_network(check_ip)
                     timer = 10
                 else:
-                    timer -= 1*INTERVAL
+                    timer -= 1 * INTERVAL
 
                 array['uptime'] = Uptime
                 array['load_1'] = Load_1
