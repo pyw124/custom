@@ -100,8 +100,8 @@ def liuliang():
     vData = vnstat[0].split(";")
     if len(vData) != 15:
         return liuliang_old()
-    NET_IN = int(vData[8])
-    NET_OUT = int(vData[9])
+    NET_IN = int(vData[12])
+    NET_OUT = int(vData[13])
     return NET_IN, NET_OUT
 
 
