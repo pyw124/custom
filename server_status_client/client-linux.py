@@ -51,8 +51,9 @@ def get_memory():
         key, value = match.groups(['key', 'value'])
         result[key] = int(value)
     MemTotal = float(result['MemTotal'])
-    MemUsed = MemTotal - float(result['MemFree']) - float(result['Buffers']) - float(result['Cached']) - float(
-        result['SReclaimable'])
+    MemUsed = MemTotal - float(result['MemFree'])
+    # MemUsed = MemTotal - float(result['MemFree']) - float(result['Buffers']) - float(result['Cached']) - float(
+    #     result['SReclaimable'])
     SwapTotal = float(result['SwapTotal'])
     SwapFree = float(result['SwapFree'])
     return int(MemTotal), int(MemUsed), int(SwapTotal), int(SwapFree)
