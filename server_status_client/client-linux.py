@@ -28,6 +28,7 @@ import json
 import errno
 import subprocess
 import threading
+import datetime
 
 try:
     from queue import Queue  # python3
@@ -96,6 +97,37 @@ def get_cpu():
 
 
 def liuliang():
+    with os.popen('vnstat --showconfig | grep "^MonthRotate"') as p:
+        mr = p.read().strip()
+
+    if len(mr) == 0:
+        rotate_day = 1
+    else:
+        rotate_day = int(mr.split()[1])
+
+    today = datetime.date.today()
+    if rotate_day <= today.day:
+        begin_day = datetime.date(year=today.year, month=today.month, day=rotate_day)
+    else:
+        last_month = datetime.date(year=today.year, month=today.month, day=1) - datetime.timedelta(days=1)
+        begin_day = datetime.date(year=last_month.year, month=last_month.month, day=rotate_day)
+
+    try:
+        with os.popen('vnstat --json d -b {}'.format(begin_day.strftime("%Y-%m-%d"))) as p:
+            vnstat_data = p.read()
+
+        json_data = json.loads(vnstat_data)
+        total_in = total_out = 0
+        for it in json_data['interfaces']:
+            for d in it['traffic']['day']:
+                total_in += d['rx']
+                total_out += d['tx']
+
+        return total_in, total_out
+    except Exception as ex:
+        return liuliang_fallback()
+
+def liuliang_fallback():
     with os.popen('vnstat --oneline b') as p:
         vnstat = p.readlines()
     vData = vnstat[0].split(";")
