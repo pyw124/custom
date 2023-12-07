@@ -17,6 +17,7 @@ PROBEPORT = 80
 PROBE_PROTOCOL_PREFER = "ipv4"  # ipv4, ipv6
 PING_PACKET_HISTORY_LEN = 100
 INTERVAL = 1
+STRICT_MEM = 0
 
 import socket
 import time
@@ -42,7 +43,7 @@ def get_uptime():
         return int(uptime[0])
 
 
-def get_memory():
+def get_memory(strict=0):
     re_parser = re.compile(r'^(?P<key>\S*):\s*(?P<value>\d*)\s*kB')
     result = dict()
     for line in open('/proc/meminfo'):
@@ -52,9 +53,11 @@ def get_memory():
         key, value = match.groups(['key', 'value'])
         result[key] = int(value)
     MemTotal = float(result['MemTotal'])
-    MemUsed = MemTotal - float(result['MemFree'])
-    # MemUsed = MemTotal - float(result['MemFree']) - float(result['Buffers']) - float(result['Cached']) - float(
-    #     result['SReclaimable'])
+    if strict:
+        MemUsed = MemTotal - float(result['MemFree']) - float(result['Buffers']) - float(result['Cached']) - float(
+            result['SReclaimable'])
+    else:
+        MemUsed = MemTotal - float(result['MemFree'])
     SwapTotal = float(result['SwapTotal'])
     SwapFree = float(result['SwapFree'])
     return int(MemTotal), int(MemUsed), int(SwapTotal), int(SwapFree)
@@ -126,6 +129,7 @@ def liuliang():
         return total_in, total_out
     except Exception as ex:
         return liuliang_fallback()
+
 
 def liuliang_fallback():
     with os.popen('vnstat --oneline b') as p:
@@ -404,6 +408,8 @@ if __name__ == '__main__':
             PASSWORD = argc.split('PASSWORD=')[-1]
         elif 'INTERVAL' in argc:
             INTERVAL = int(argc.split('INTERVAL=')[-1])
+        elif 'STRICT_MEM' in argc:
+            STRICT_MEM = int(argc.split('STRICT_MEM=')[-1])
     socket.setdefaulttimeout(30)
     get_realtime_data()
     while True:
@@ -441,7 +447,7 @@ if __name__ == '__main__':
                 NET_IN, NET_OUT = liuliang()
                 Uptime = get_uptime()
                 Load_1, Load_5, Load_15 = os.getloadavg()
-                MemoryTotal, MemoryUsed, SwapTotal, SwapFree = get_memory()
+                MemoryTotal, MemoryUsed, SwapTotal, SwapFree = get_memory(strict=STRICT_MEM)
                 HDDTotal, HDDUsed = get_hdd()
 
                 array = {}
