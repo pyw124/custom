@@ -30,6 +30,7 @@ import errno
 import subprocess
 import threading
 import datetime
+import calendar
 
 try:
     from queue import Queue  # python3
@@ -113,7 +114,11 @@ def liuliang():
         begin_day = datetime.date(year=today.year, month=today.month, day=rotate_day)
     else:
         last_month = datetime.date(year=today.year, month=today.month, day=1) - datetime.timedelta(days=1)
-        begin_day = datetime.date(year=last_month.year, month=last_month.month, day=rotate_day)
+        _, number_of_days = calendar.monthrange(year=last_month.year, month=last_month.month)
+        if rotate_day > number_of_days:
+            begin_day = datetime.date(year=today.year, month=today.month, day=1)
+        else:
+            begin_day = datetime.date(year=last_month.year, month=last_month.month, day=rotate_day)
 
     try:
         with os.popen('vnstat --json d -b {}'.format(begin_day.strftime("%Y-%m-%d"))) as p:
