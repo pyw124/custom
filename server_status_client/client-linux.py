@@ -101,8 +101,10 @@ def get_cpu():
 
 
 def liuliang():
-    with os.popen('vnstat --showconfig | grep "^MonthRotate"') as p:
+    with os.popen('cat /etc/vnstat.conf | grep "^MonthRotate"') as p:
         mr = p.read().strip()
+    # with os.popen('vnstat --showconfig | grep "^MonthRotate"') as p:
+    #     mr = p.read().strip()
 
     if len(mr) == 0:
         rotate_day = 1
