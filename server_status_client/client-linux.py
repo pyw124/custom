@@ -126,6 +126,10 @@ def liuliang():
         with os.popen('vnstat --json d -b {}'.format(begin_day.strftime("%Y-%m-%d"))) as p:
             vnstat_data = p.read()
 
+        # Fix MonthRotate gt 28 error msg
+        start_pos = vnstat_data.find('{')
+        vnstat_data = vnstat_data[start_pos:]
+
         json_data = json.loads(vnstat_data)
         total_in = total_out = 0
         for it in json_data['interfaces']:
