@@ -6,7 +6,7 @@ LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/
 GEOIP_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$LATEST_VERSION/geoip.dat"
 GEOIP_CHECKSUM_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$LATEST_VERSION/geoip.dat.sha256sum"
 GEOSITE_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$LATEST_VERSION/geosite.dat"
-GEOSITE_CHECKSUM_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$LATEST_VERSION/geoip.dat.sha256sum"
+GEOSITE_CHECKSUM_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/$LATEST_VERSION/geosite.dat.sha256sum"
 
 curl -m 15 -L -R -H "Cache-Control: no-cache" -o /tmp/geoip.dat.sha256sum $GEOIP_CHECKSUM_URL
 if [[ $? == 0 ]]
