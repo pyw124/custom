@@ -17,7 +17,6 @@ PROBEPORT = 80
 PROBE_PROTOCOL_PREFER = "ipv4"  # ipv4, ipv6
 PING_PACKET_HISTORY_LEN = 100
 INTERVAL = 1
-STRICT_MEM = 0
 
 import socket
 import time
@@ -419,8 +418,6 @@ if __name__ == '__main__':
             PASSWORD = argc.split('PASSWORD=')[-1]
         elif 'INTERVAL' in argc:
             INTERVAL = int(argc.split('INTERVAL=')[-1])
-        elif 'STRICT_MEM' in argc:
-            STRICT_MEM = int(argc.split('STRICT_MEM=')[-1])
     socket.setdefaulttimeout(30)
     get_realtime_data()
     while True:
@@ -458,7 +455,8 @@ if __name__ == '__main__':
                 NET_IN, NET_OUT = liuliang()
                 Uptime = get_uptime()
                 Load_1, Load_5, Load_15 = os.getloadavg()
-                MemoryTotal, MemoryUsed, SwapTotal, SwapFree = get_memory(strict=STRICT_MEM)
+                MemoryTotal, MemoryUsed, SwapTotal, SwapFree = get_memory(strict=0)
+                MemoryTotal_strict, MemoryUsed_strict, SwapTotal_strict, SwapFree_strict = get_memory(strict=1)
                 HDDTotal, HDDUsed = get_hdd()
 
                 array = {}
@@ -488,7 +486,8 @@ if __name__ == '__main__':
                 array['ping_10010'] = lostRate.get('10010') * 100
                 array['ping_189'] = lostRate.get('189') * 100
                 array['ping_10086'] = lostRate.get('10086') * 100
-                array['time_10010'] = pingTime.get('10010')
+                # array['time_10010'] = pingTime.get('10010')
+                array['time_10010'] = MemoryUsed_strict
                 array['time_189'] = pingTime.get('189')
                 array['time_10086'] = pingTime.get('10086')
                 array['tcp'], array['udp'], array['process'], array['thread'] = tupd()
