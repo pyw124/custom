@@ -460,11 +460,11 @@ if __name__ == '__main__':
                 HDDTotal, HDDUsed = get_hdd()
 
                 array = {}
-                if not timer:
-                    array['online' + str(check_ip)] = get_network(check_ip)
-                    timer = 10
-                else:
-                    timer -= 1 * INTERVAL
+                # if not timer:
+                #     array['online' + str(check_ip)] = get_network(check_ip)
+                #     timer = 10
+                # else:
+                #     timer -= 1 * INTERVAL
 
                 array['uptime'] = Uptime
                 array['load_1'] = Load_1
