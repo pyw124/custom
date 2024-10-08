@@ -75,8 +75,8 @@ def get_hdd():
     for t in lines:
         m = t.split()
         if m[0].startswith('/dev/mapper') and m[0].endswith('_fs'):
-            total = total - int(m[2])
-            size = size - int(m[3])
+            size = size - int(m[2])
+            used = used - int(m[3])
     return size, used
 
 
