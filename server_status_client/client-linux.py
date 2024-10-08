@@ -67,9 +67,16 @@ def get_hdd():
     p = subprocess.check_output(
         ['df', '-Tlm', '--total', '-t', 'ext4', '-t', 'ext3', '-t', 'ext2', '-t', 'reiserfs', '-t', 'jfs', '-t', 'ntfs',
          '-t', 'fat32', '-t', 'btrfs', '-t', 'fuseblk', '-t', 'zfs', '-t', 'simfs', '-t', 'xfs']).decode("Utf-8")
-    total = p.splitlines()[-1]
+    lines = p.splitlines()
+    total = lines[-1]
     used = total.split()[3]
     size = total.split()[2]
+
+    for t in lines:
+        m = t.split()
+        if m[0].startswith('/dev/mapper') and m[0].endswith('_fs'):
+            total = total - m[2]
+            size = size - m[3]
     return int(size), int(used)
 
 
