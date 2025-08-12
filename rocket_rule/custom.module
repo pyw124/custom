@@ -1,3 +1,4 @@
+#!name=custom_list
 [Rule]
 DOMAIN-KEYWORD,nodeseek,REJECT
 IP-CIDR,178.157.51.0/24,DIRECT
