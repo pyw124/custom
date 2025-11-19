@@ -1,4 +1,4 @@
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata
+#bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata
 
 LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest)
 LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/')
@@ -17,6 +17,7 @@ then
   if [[ $? == 0 ]]
   then
     /usr/bin/cp -f /tmp/geoip.dat /usr/local/share/xray/geoip-enhanced.dat
+    /usr/bin/cp -f /tmp/geoip.dat /usr/local/share/xray/geoip.dat
   fi
 fi
 
@@ -29,6 +30,7 @@ then
   if [[ $? == 0 ]]
   then
     /usr/bin/cp -f /tmp/geosite.dat /usr/local/share/xray/geosite-enhanced.dat
+    /usr/bin/cp -f /tmp/geosite.dat /usr/local/share/xray/geosite.dat
   fi
 fi
 
