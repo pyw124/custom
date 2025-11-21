@@ -21,8 +21,8 @@ def get_ping(ip):
 if __name__ == "__main__":
     cf_ping = get_ping("1.1.1.1")
     google_ping = get_ping("8.8.8.8")
-    quad9_ping = get_ping("9.9.9.9")
-    results = [("1.1.1.1", cf_ping), ("8.8.8.8", google_ping), ("9.9.9.9", quad9_ping)]
+    quad9_ping = get_ping("208.67.222.222")
+    results = [("1.1.1.1", cf_ping), ("8.8.8.8", google_ping), ("208.67.222.222", quad9_ping)]
     results = sorted(results, key=lambda x: x[1])
     for t in results:
         print(t[0], 'DNS PING', t[1], 'ms')
